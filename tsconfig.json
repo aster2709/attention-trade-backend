@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "esnext",                     /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "module": "commonjs",                   /* Specify what module code is generated. */
+    "outDir": "./dist",                     /* Specify an output folder for all emitted files. */
+    "rootDir": "./src",                     /* Specify the root folder within your source files. */
+    "strict": true,                         /* Enable all strict type-checking options. */
+    "esModuleInterop": true,                /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "skipLibCheck": true,                   /* Skip type checking all .d.ts files. */
+    "forceConsistentCasingInFileNames": true, /* Ensure that casing is correct in imports. */
+    "experimentalDecorators": true,         /* Enable experimental support for TC39 stage 2 draft decorators. */
+    "emitDecoratorMetadata": true           /* Enable experimental support for emitting type metadata for decorators. */
+  },
+  "include": ["src/**/*"],                  /* Specifies an array of file patterns to include in the program. */
+  "exclude": ["node_modules"]               /* Specifies an array of file patterns to exclude from the program. */
+}
