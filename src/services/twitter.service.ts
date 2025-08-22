@@ -4,6 +4,7 @@ import {
   TwitterOpenApiClient,
 } from "twitter-openapi-typescript";
 import { Token } from "../models/token.model";
+import { config } from "../config/env";
 
 // Simplified result type for our use case
 export interface TwitterSearchResult {
@@ -14,12 +15,12 @@ export interface TwitterSearchResult {
 
 const credentials = {
   client1: {
-    ct0: process.env.TWITTER_CT0!,
-    auth_token: process.env.TWITTER_AUTH_TOKEN!,
+    ct0: config.TWITTER_CT0,
+    auth_token: config.TWITTER_AUTH_TOKEN,
   },
   client2: {
-    ct0: process.env.TWITTER_CT0_2!,
-    auth_token: process.env.TWITTER_AUTH_TOKEN_2!,
+    ct0: config.TWITTER_CT0_2,
+    auth_token: config.TWITTER_AUTH_TOKEN_2,
   },
 };
 

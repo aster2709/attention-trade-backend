@@ -22,13 +22,14 @@ import telegramRoutes from "./routes/telegram.routes";
 import userRoutes from "./routes/user.routes"; // <-- IMPORT
 
 import { startTelegramBot } from "./services/telegram.bot.service";
+import { config } from "./config/env";
 
 const main = async () => {
   await connectDB();
   await initTelegramClient();
 
   const app = express();
-  const PORT = process.env.PORT || 4000;
+  const PORT = config.PORT || 4000;
 
   app.use(helmet());
   app.use(cors());

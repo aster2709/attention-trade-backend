@@ -3,9 +3,10 @@ import { StringSession } from "telegram/sessions";
 import * as fs from "fs";
 import * as path from "path";
 import * as readline from "readline";
+import { config } from "../config/env";
 
-const apiId = Number(process.env.TG_API_ID);
-const apiHash = process.env.TG_API_HASH as string;
+const apiId = Number(config.TG_API_ID);
+const apiHash = config.TG_API_HASH;
 
 if (!apiId || !apiHash) {
   throw new Error("Missing TG_API_ID or TG_API_HASH from .env file");

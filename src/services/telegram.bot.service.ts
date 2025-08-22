@@ -1,8 +1,9 @@
 import { Telegraf } from "telegraf";
 import { UserModel } from "../models/user.model";
 import crypto from "crypto";
+import { config } from "../config/env";
 
-const BOT_TOKEN = process.env.TG_BOT_TOKEN;
+const BOT_TOKEN = config.TG_BOT_TOKEN;
 
 if (!BOT_TOKEN) {
   throw new Error("TG_BOT_TOKEN is not defined in the .env file.");

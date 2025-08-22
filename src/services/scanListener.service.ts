@@ -1,7 +1,8 @@
 import WebSocket from "ws";
 import { processNewScan } from "./scan.processor.service"; // We will create this next
+import { config } from "../config/env";
 
-const WEBSOCKET_URL = process.env.WEBSOCKET_STREAM_URL || "wss://fnfscan.xyz";
+const WEBSOCKET_URL = config.WEBSOCKET_STREAM_URL || "wss://fnfscan.xyz";
 
 /**
  * Manages the WebSocket connection to the scan feed.

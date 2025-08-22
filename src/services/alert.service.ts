@@ -161,8 +161,9 @@ export const checkAndTriggerAlerts = async (
     const zonesEntered = newActiveZones.filter(
       (z) => !oldActiveZones.includes(z)
     );
+    // Corrected logic
     const zonesExited = oldActiveZones.filter(
-      (z) => !oldActiveZones.includes(z)
+      (z) => !newActiveZones.includes(z)
     );
 
     if (zonesEntered.length > 0) {
