@@ -1,6 +1,8 @@
-import * as cron from "node-cron";
+// src/services/rickTapper.service.ts
+import { getPreEntryCandidateTokens } from "../utils/tokenCandidates"; // Adjust path as needed
 import { TokenModel } from "../models/token.model";
 import { tgClient } from "./telegram.service";
+import * as cron from "node-cron";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -28,23 +30,22 @@ class RickTapperService {
     console.log("[Tapper] Starting new tapping cycle...");
 
     try {
-      // --- THIS IS THE CORRECTED QUERY ---
-      // Find tokens where the activeZones array is not empty.
-      const activeTokens = await TokenModel.find({
-        activeZones: { $ne: [] },
+      const candidateTokenIds = await getPreEntryCandidateTokens();
+      if (candidateTokenIds.length === 0) {
+        console.log("[Tapper] No pre-entry candidate tokens to tap.");
+        return;
+      }
+
+      const candidateTokens = await TokenModel.find({
+        _id: { $in: candidateTokenIds },
       })
         .select("mintAddress symbol")
         .lean();
 
-      if (activeTokens.length === 0) {
-        console.log("[Tapper] No active tokens in any orbit to tap.");
-        return;
-      }
-
       console.log(
-        `[Tapper] Found ${activeTokens.length} tokens to tap. Starting...`
+        `[Tapper] Found ${candidateTokens.length} pre-entry tokens to tap. Starting...`
       );
-      for (const token of activeTokens) {
+      for (const token of candidateTokens) {
         console.log(
           `[Tapper] -> Tapping Rick for ${token.symbol} (${token.mintAddress})`
         );

@@ -41,6 +41,9 @@ const sendTelegramAlert = async (
 
 🧠 *Scans:* ${token.scanCount}
 👥 *Groups:* ${token.groupCount}
+👀 *Rick Views:* ${(token.rickViews || 0).toLocaleString()}
+𝕏 *Posts:* ${token.xPostCount}
+📈 *X Views:* ${(token.xPostViews || 0).toLocaleString()}
 
 \`${token.mintAddress}\`
     `;

@@ -23,3 +23,22 @@ export const ZONE_CRITERIA = {
     windowHours: 24,
   },
 };
+
+// New: Pre-entry criteria (relaxed thresholds for proactive tapping)
+export const PRE_ENTRY_CRITERIA = {
+  DEGEN_ORBIT: {
+    scans: ZONE_CRITERIA.DEGEN_ORBIT.scans - 1, // e.g., 3
+    groups: ZONE_CRITERIA.DEGEN_ORBIT.groups - 1, // e.g., 2
+    windowHours: ZONE_CRITERIA.DEGEN_ORBIT.windowHours,
+  },
+  MAINFRAME: {
+    scans: ZONE_CRITERIA.MAINFRAME.scans - 1, // e.g., 11
+    groups: ZONE_CRITERIA.MAINFRAME.groups - 1, // e.g., 5
+    windowHours: ZONE_CRITERIA.MAINFRAME.windowHours,
+  },
+  SENTIMENT_CORE: {
+    scans: ZONE_CRITERIA.SENTIMENT_CORE.scans - 1, // e.g., 19
+    groups: ZONE_CRITERIA.SENTIMENT_CORE.groups - 1, // e.g., 7
+    windowHours: ZONE_CRITERIA.SENTIMENT_CORE.windowHours,
+  },
+};

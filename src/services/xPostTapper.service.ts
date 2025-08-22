@@ -1,17 +1,18 @@
-import * as cron from "node-cron";
+// src/services/xPostTapper.service.ts
+import { getPreEntryCandidateTokens } from "../utils/tokenCandidates"; // Adjust path as needed
 import { TokenModel } from "../models/token.model";
 import { getNewTweetsForToken } from "./twitter.service";
 import { updateAttentionScore } from "./attentionScore.service";
+import * as cron from "node-cron";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 class XPostTapperService {
   private job: cron.ScheduledTask;
   private isTapping: boolean = false;
-  private clientToggle: "client1" | "client2" = "client1"; // To alternate between clients
+  private clientToggle: "client1" | "client2" = "client1";
 
   constructor() {
-    // Run every 2 minutes
     this.job = cron.schedule("* * * * *", () => this.runTapper());
   }
 
@@ -31,21 +32,22 @@ class XPostTapperService {
     console.log("[xPost Tapper] Starting new tapping cycle...");
 
     try {
-      const activeTokens = await TokenModel.find({
-        activeZones: { $ne: [] },
+      const candidateTokenIds = await getPreEntryCandidateTokens();
+      if (candidateTokenIds.length === 0) {
+        console.log("[xPost Tapper] No pre-entry candidate tokens to check.");
+        return;
+      }
+
+      const candidateTokens = await TokenModel.find({
+        _id: { $in: candidateTokenIds },
       })
         .select("mintAddress symbol latestTweetId")
         .lean();
 
-      if (activeTokens.length === 0) {
-        console.log("[xPost Tapper] No active tokens to tap.");
-        return;
-      }
-
       console.log(
-        `[xPost Tapper] Found ${activeTokens.length} tokens to check for new posts.`
+        `[xPost Tapper] Found ${candidateTokens.length} pre-entry tokens to check for new posts.`
       );
-      for (const token of activeTokens) {
+      for (const token of candidateTokens) {
         console.log(`[xPost Tapper] -> Checking ${token.symbol}`);
 
         const result = await getNewTweetsForToken(token, this.clientToggle);
@@ -66,17 +68,13 @@ class XPostTapperService {
             `[xPost Tapper] ✅ Found ${result.newPostCount} new posts for ${token.symbol}.`
           );
 
-          // --- RECALCULATE SCORE ---
           if (updatedToken) {
             await updateAttentionScore(updatedToken._id);
           }
         }
 
-        // Alternate client for next request to distribute load and avoid rate limits
         this.clientToggle =
           this.clientToggle === "client1" ? "client2" : "client1";
-
-        // Wait 20 seconds before checking the next token
         await sleep(10000);
       }
       console.log("[xPost Tapper] Finished tapping cycle.");
