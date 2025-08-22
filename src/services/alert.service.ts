@@ -37,14 +37,10 @@ const sendTelegramAlert = async (
 
 *$${token.symbol}* has entered the zone!
 
-*First Seen:* ${formatNumber(zoneState.entryMcap)}
-*ATH Since Entry:* ${formatNumber(zoneState.athMcapSinceEntry)}
+*Mcap:* ${formatNumber(zoneState.entryMcap)}
 
 🧠 *Scans:* ${token.scanCount}
 👥 *Groups:* ${token.groupCount}
-👀 *Rick Views:* ${(token.rickViews || 0).toLocaleString()}
-𝕏 *Posts:* ${token.xPostCount}
-📈 *X Views:* ${(token.xPostViews || 0).toLocaleString()}
 
 \`${token.mintAddress}\`
     `;
@@ -253,7 +249,7 @@ export const checkAndTriggerAlerts = async (
 
     if (zonesExited.length > 0) {
       zonesExited.forEach((zone) => {
-        delete (tokenDoc.zoneState as any)[zone]; // Type assertion for deletion
+        delete (tokenDoc.zoneState as any)[zone];
         broadcastService.broadcastZoneExit(tokenDoc.mintAddress, zone);
       });
     }
@@ -263,8 +259,8 @@ export const checkAndTriggerAlerts = async (
       tokenDoc.markModified("zoneState");
       await tokenDoc.save();
 
-      const token = await TokenModel.findById(tokenId).lean();
-      if (!token) return;
+      // Use the tokenDoc directly instead of querying again with .lean()
+      const token = tokenDoc;
 
       if (zonesEntered.length > 0) {
         broadcastService.broadcastZoneEntry(token);
