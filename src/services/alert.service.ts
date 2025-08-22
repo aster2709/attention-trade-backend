@@ -54,11 +54,15 @@ const sendTelegramAlert = async (
       inline_keyboard: [
         [
           {
-            text: "Trade on AXI",
+            text: "AXI",
             url: `https://axiom.trade/t/${token.mintAddress}`,
           },
           {
-            text: "View on DEX",
+            text: "PHO",
+            url: `https://photon-sol.tinyastro.io/en/lp/${token.mintAddress}`,
+          },
+          {
+            text: "DEX",
             url: `https://dexscreener.com/solana/${token.mintAddress}`,
           },
         ],
