@@ -23,9 +23,6 @@ export class Scan {
 
   @prop()
   public groupName?: string;
-
-  // REMOVED: Not currently used by the alert aggregation logic
-  // public scannedAtMarketCap?: number;
 }
 
 export const ScanModel = getModelForClass(Scan);

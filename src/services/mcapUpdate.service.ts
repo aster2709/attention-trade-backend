@@ -21,43 +21,28 @@ class McapUpdateService {
 
   private async runUpdate() {
     if (this.isTaskRunning) {
-      console.log(
-        "[Cron] Skip run: Previous mcap update task is still in progress."
-      );
       return;
     }
 
     this.isTaskRunning = true;
-    console.log("[Cron] Running scheduled market cap update...");
 
     try {
-      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
-      const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000);
-
-      const exclusionQuery = {
-        $nor: [
-          { createdAt: { $lt: twoHoursAgo }, currentMarketCap: { $lt: 10000 } },
-          {
-            createdAt: { $lt: eightHoursAgo },
-            currentMarketCap: { $lt: 30000 },
-          },
-        ],
-      };
-
-      // Fetch mint and activeZones for all eligible tokens
-      const tokensToUpdate = await TokenModel.find(exclusionQuery)
+      // --- THIS IS THE FIX ---
+      // We now query directly for tokens that are in at least one zone.
+      const tokensToUpdate = await TokenModel.find({
+        activeZones: { $ne: [] },
+      })
         .select("mintAddress activeZones")
         .lean();
 
-      const mints = tokensToUpdate.map((t) => t.mintAddress);
-      if (mints.length === 0) {
-        console.log("[Cron] No active tokens to update.");
+      if (tokensToUpdate.length === 0) {
+        this.isTaskRunning = false;
         return;
       }
-      console.log(`[Cron] Found ${mints.length} active tokens to update.`);
 
+      const mints = tokensToUpdate.map((t) => t.mintAddress);
       const bulkOps = [];
-      const updatedTokensForBroadcast: any[] = []; // <-- Store updates for broadcasting
+      const updatedTokensForBroadcast: any[] = [];
 
       for (let i = 0; i < mints.length; i += BATCH_SIZE) {
         const batch = mints.slice(i, i + BATCH_SIZE);
@@ -75,11 +60,10 @@ class McapUpdateService {
               $set: { currentMarketCap: newMarketCap },
             };
 
-            // Dynamically build $max updates for each active zone's ATH
             if (activeZones.length > 0) {
+              updateOperation.$max = {};
               activeZones.forEach((zone) => {
                 const athField = `zoneState.${zone}.athMcapSinceEntry`;
-                if (!updateOperation.$max) updateOperation.$max = {};
                 updateOperation.$max[athField] = newMarketCap;
               });
             }
@@ -91,30 +75,18 @@ class McapUpdateService {
               },
             });
 
-            // --- PREPARE DATA FOR BROADCAST ---
             updatedTokensForBroadcast.push({
               mintAddress: tokenData.mintAddress,
-              currentMarketCap: tokenData.marketCap,
             });
           }
         }
-
-        console.log(
-          `[Cron] Processed batch ${Math.ceil(i / BATCH_SIZE)}. Waiting 2s...`
-        );
         await sleep(2000);
       }
 
       if (bulkOps.length > 0) {
-        const result = await TokenModel.bulkWrite(bulkOps);
-        console.log(
-          `[Cron] ✅ Market caps updated. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}.`
-        );
+        await TokenModel.bulkWrite(bulkOps);
 
-        // --- BROADCAST ALL STAT UPDATES ---
-        // We do this after the DB is successfully updated.
         for (const updatedToken of updatedTokensForBroadcast) {
-          // We need to fetch the full new state to send to the frontend
           const fullTokenState = await TokenModel.findOne({
             mintAddress: updatedToken.mintAddress,
           }).lean();
@@ -125,13 +97,6 @@ class McapUpdateService {
             });
           }
         }
-        console.log(
-          `[Cron] 📢 Broadcasted stats updates for ${updatedTokensForBroadcast.length} tokens.`
-        );
-      } else {
-        console.log(
-          "[Cron] No market cap data returned from Jupiter for the current batch."
-        );
       }
     } catch (error) {
       console.error("[Cron] Error during mcap update:", error);
