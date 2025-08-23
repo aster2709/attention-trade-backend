@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { TokenModel, Token } from "../models/token.model";
 import { ScanModel } from "../models/scan.model";
 import { UserModel } from "../models/user.model";
+import { TelegramAlertModel } from "../models/telegramAlert.model"; // NEW IMPORT
 import { broadcastService } from "./broadcast.service";
 import { ZONE_CRITERIA } from "../config/zones";
 import { updateAttentionScore } from "./attentionScore.service";
@@ -15,6 +16,7 @@ type ZoneName = keyof typeof ZONE_CRITERIA;
  * @param chatId The user's Telegram chat ID.
  * @param token The token that entered the zone.
  * @param zoneName The name of the zone entered.
+ * @returns The sent message ID, or null if failed.
  */
 const sendTelegramAlert = async (
   chatId: number,
@@ -22,7 +24,7 @@ const sendTelegramAlert = async (
   zoneName: ZoneName
 ) => {
   const zoneState = token.zoneState[zoneName];
-  if (!zoneState) return;
+  if (!zoneState) return null;
 
   const logo = token.logoURI || "https://i.imgur.com/v81nW21.png";
   const zoneTitle = {
@@ -72,7 +74,7 @@ const sendTelegramAlert = async (
 
   try {
     // Send a photo with the caption and trade links
-    await telegramBot.telegram.sendPhoto(chatId, logo, {
+    const sentMessage = await telegramBot.telegram.sendPhoto(chatId, logo, {
       caption: message,
       parse_mode: "Markdown",
       ...tradeLinks,
@@ -80,11 +82,14 @@ const sendTelegramAlert = async (
     console.log(
       `[Alerts] Sent Telegram alert for ${token.symbol} to chat ID ${chatId}`
     );
+
+    return sentMessage.message_id; // Return message ID for storage
   } catch (error) {
     console.error(
       `[Alerts] Failed to send Telegram alert to ${chatId}:`,
       error
     );
+    return null;
   }
 };
 
@@ -283,7 +288,23 @@ export const checkAndTriggerAlerts = async (
           );
           for (const user of usersToAlert) {
             if (user.telegram?.chatId) {
-              await sendTelegramAlert(user.telegram.chatId, token, zone);
+              const messageId = await sendTelegramAlert(
+                user.telegram.chatId,
+                token,
+                zone
+              );
+              if (messageId) {
+                // NEW: Store the sent alert
+                await TelegramAlertModel.create({
+                  user: user._id,
+                  token: token._id,
+                  zoneName: zone,
+                  chatId: user.telegram.chatId,
+                  messageId,
+                  entryMcap: token.zoneState[zone].entryMcap,
+                  checkpointsHit: [],
+                });
+              }
             }
           }
         }

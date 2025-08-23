@@ -12,6 +12,7 @@ import { startTelegramListener } from "./services/telegramListener.service";
 import { rickTapperService } from "./services/rickTapper.service";
 import { xPostTapperService } from "./services/xPostTapper.service";
 import { broadcastService } from "./services/broadcast.service";
+import { zoneReevaluationService } from "./services/zoneReevaluation.service"; // NEW IMPORT
 
 // Import API routes
 import zoneRoutes from "./routes/zones.routes";
@@ -19,7 +20,7 @@ import hallOfFameRoutes from "./routes/hallOfFame.routes";
 import metricsRoutes from "./routes/metrics.routes";
 import authRoutes from "./routes/auth.routes";
 import telegramRoutes from "./routes/telegram.routes";
-import userRoutes from "./routes/user.routes"; // <-- IMPORT
+import userRoutes from "./routes/user.routes";
 
 import { startTelegramBot } from "./services/telegram.bot.service";
 import { config } from "./config/env";
@@ -39,8 +40,8 @@ const main = async () => {
   app.use("/api/zones", zoneRoutes);
   app.use("/api/hall-of-fame", hallOfFameRoutes);
   app.use("/api/metrics", metricsRoutes);
-  app.use("/api/telegram", telegramRoutes); // <-- ADD THIS
-  app.use("/api/users", userRoutes); // <-- ADD THIS
+  app.use("/api/telegram", telegramRoutes);
+  app.use("/api/users", userRoutes);
 
   app.get("/", (req: Request, res: Response) => {
     res.json({
@@ -62,6 +63,7 @@ const main = async () => {
     startTelegramListener();
     rickTapperService.start();
     xPostTapperService.start();
+    zoneReevaluationService.start(); // NEW SERVICE START
     startTelegramBot();
     console.log("--- All services are running ---");
   });

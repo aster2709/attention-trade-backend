@@ -19,7 +19,7 @@ export const ZONE_CRITERIA = {
     name: "SENTIMENT_CORE",
     scans: 35,
     groups: 11,
-    window: "24h",
+    window: "48h",
     windowHours: 48,
   },
 };
