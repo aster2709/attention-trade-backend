@@ -92,7 +92,7 @@ class McapUpdateService {
         for (const updatedToken of updatedTokensForBroadcast) {
           const fullTokenState = await TokenModel.findOne({
             mintAddress: updatedToken.mintAddress,
-          }).lean();
+          });
           if (fullTokenState) {
             broadcastService.broadcastStatsUpdate(fullTokenState.mintAddress, {
               currentMarketCap: fullTokenState.currentMarketCap,
@@ -113,10 +113,22 @@ class McapUpdateService {
 
   private async checkAndSendCheckpointAlerts(token: any) {
     try {
-      const alerts = await TelegramAlertModel.find({ token: token._id });
-      if (!alerts.length) return;
+      // Use aggregation to get the earliest alert per chatId
+      const earliestAlerts = await TelegramAlertModel.aggregate([
+        { $match: { token: token._id } }, // Filter by token
+        { $sort: { createdAt: 1 } }, // Sort by createdAt ascending (earliest first)
+        {
+          $group: {
+            _id: "$chatId", // Group by chatId
+            alert: { $first: "$$ROOT" }, // Take the first document (earliest) per chatId
+          },
+        },
+        { $replaceRoot: { newRoot: "$alert" } }, // Flatten the result to get the full alert document
+      ]).exec();
 
-      for (const alert of alerts) {
+      if (!earliestAlerts.length) return;
+
+      for (const alert of earliestAlerts) {
         const multiple = token.currentMarketCap / alert.entryMcap;
         if (multiple < CHECKPOINTS[0] || multiple <= 0) continue; // No checkpoints crossed or invalid multiple
 
@@ -133,17 +145,16 @@ class McapUpdateService {
         if (newCheckpoints.length > 0) {
           for (const checkpoint of newCheckpoints) {
             const updateMessage = `
-🚀 *$${token.symbol} hit ${checkpoint}x since alert!*
+🚀 *\\$${token.symbol} hit ${checkpoint}x since alert!*
 
 Current MCAP: ${formatNumber(token.currentMarketCap)}
-(From ${formatNumber(alert.entryMcap)} in ${alert.zoneName})
 
 🧠 *Scans:* ${token.scanCount}
-👥 *Groups:* ${token.groupCount}
+👥 *Groups:* ${token.groupCount || "N/A"}
 👀 *Rick Views:* ${(token.rickViews || 0).toLocaleString()}
 𝕏 *Posts:* ${token.xPostCount}
 📈 *X Views:* ${(token.xPostViews || 0).toLocaleString()}
-          `;
+          `.trim();
 
             try {
               await telegramBot.telegram.sendMessage(
@@ -151,7 +162,7 @@ Current MCAP: ${formatNumber(token.currentMarketCap)}
                 updateMessage,
                 {
                   parse_mode: "Markdown",
-                  reply_parameters: { message_id: alert.messageId }, // Updated to reply_parameters
+                  reply_parameters: { message_id: alert.messageId },
                 }
               );
               console.log(
@@ -165,10 +176,16 @@ Current MCAP: ${formatNumber(token.currentMarketCap)}
             }
           }
 
-          // Update the alert document with new checkpoints hit
-          alert.checkpointsHit.push(...newCheckpoints);
-          alert.markModified("checkpointsHit");
-          await alert.save();
+          // Update only the first alert's checkpoints
+          const updatedAlert = await TelegramAlertModel.findOneAndUpdate(
+            { _id: alert._id },
+            { $push: { checkpointsHit: { $each: newCheckpoints } } },
+            { new: true }
+          );
+          if (updatedAlert) {
+            updatedAlert.markModified("checkpointsHit");
+            await updatedAlert.save();
+          }
         }
       }
     } catch (error) {

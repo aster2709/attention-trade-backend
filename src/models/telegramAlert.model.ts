@@ -3,6 +3,7 @@ import {
   prop,
   Ref,
   modelOptions,
+  defaultClasses,
 } from "@typegoose/typegoose";
 import { User } from "./user.model";
 import { Token } from "./token.model";
@@ -10,7 +11,7 @@ import { Token } from "./token.model";
 @modelOptions({
   schemaOptions: { timestamps: true },
 })
-export class TelegramAlert {
+export class TelegramAlert extends defaultClasses.TimeStamps {
   @prop({ ref: () => User, required: true })
   public user!: Ref<User>;
 

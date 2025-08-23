@@ -8,6 +8,7 @@ import { ZONE_CRITERIA } from "../config/zones";
 import { updateAttentionScore } from "./attentionScore.service";
 import { bot as telegramBot } from "./telegram.bot.service";
 import { formatNumber } from "../utils/formatters";
+import { fetchTokenData } from "./jupiter.service"; // Import Jupiter service
 
 type ZoneName = keyof typeof ZONE_CRITERIA;
 
@@ -250,10 +251,15 @@ export const checkAndTriggerAlerts = async (
     );
 
     if (zonesEntered.length > 0) {
+      // Fetch the latest MCAP from Jupiter
+      const jupiterData = await fetchTokenData(tokenDoc.mintAddress);
+      const latestMarketCap =
+        jupiterData?.marketCap || tokenDoc.currentMarketCap;
+
       zonesEntered.forEach((zone) => {
         tokenDoc.zoneState[zone] = {
-          entryMcap: tokenDoc.currentMarketCap,
-          athMcapSinceEntry: tokenDoc.currentMarketCap,
+          entryMcap: latestMarketCap, // Use the latest MCAP
+          athMcapSinceEntry: latestMarketCap,
           entryTimestamp: now,
         };
       });
