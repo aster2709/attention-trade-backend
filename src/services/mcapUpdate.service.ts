@@ -145,7 +145,7 @@ class McapUpdateService {
         if (newCheckpoints.length > 0) {
           for (const checkpoint of newCheckpoints) {
             const updateMessage = `
-🚀 *\\$${token.symbol} hit ${checkpoint}x since alert!*
+🚀 *$${token.symbol} hit ${checkpoint}x since alert!*
 
 Current MCAP: ${formatNumber(token.currentMarketCap)}
 
