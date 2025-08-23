@@ -25,8 +25,8 @@ class TelegramInfo {
   schemaOptions: { timestamps: true },
 })
 export class User {
-  @prop({ required: true, unique: true, index: true })
-  public walletAddress!: string;
+  @prop({ unique: true, sparse: true, index: true })
+  public walletAddress?: string; // Made optional with '?'
 
   @prop({ default: 0 })
   public loginCount!: number;
