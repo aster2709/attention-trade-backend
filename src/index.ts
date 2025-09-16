@@ -28,7 +28,7 @@ import { config } from "./config/env";
 
 const main = async () => {
   await connectDB();
-  // await initTelegramClient();
+  await initTelegramClient();
 
   const app = express();
   const PORT = config.PORT || 4000;
@@ -60,13 +60,13 @@ const main = async () => {
     broadcastService.initialize(server);
 
     console.log("--- Starting background services ---");
-    // scanListenerService.start();
-    // mcapUpdateService.start();
-    // startTelegramListener();
-    // rickTapperService.start();
-    // xPostTapperService.start();
-    // zoneReevaluationService.start(); // NEW SERVICE START
-    // startTelegramBot();
+    scanListenerService.start();
+    mcapUpdateService.start();
+    startTelegramListener();
+    rickTapperService.start();
+    xPostTapperService.start();
+    zoneReevaluationService.start(); // NEW SERVICE START
+    startTelegramBot();
     console.log("--- All services are running ---");
   });
 };
