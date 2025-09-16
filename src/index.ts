@@ -21,13 +21,14 @@ import metricsRoutes from "./routes/metrics.routes";
 import authRoutes from "./routes/auth.routes";
 import telegramRoutes from "./routes/telegram.routes";
 import userRoutes from "./routes/user.routes";
+import fnfscanRoutes from "./routes/fnfscan.routes";
 
 import { startTelegramBot } from "./services/telegram.bot.service";
 import { config } from "./config/env";
 
 const main = async () => {
   await connectDB();
-  await initTelegramClient();
+  // await initTelegramClient();
 
   const app = express();
   const PORT = config.PORT || 4000;
@@ -42,6 +43,7 @@ const main = async () => {
   app.use("/api/metrics", metricsRoutes);
   app.use("/api/telegram", telegramRoutes);
   app.use("/api/users", userRoutes);
+  app.use("/api/tokens", fnfscanRoutes);
 
   app.get("/", (req: Request, res: Response) => {
     res.json({
@@ -58,13 +60,13 @@ const main = async () => {
     broadcastService.initialize(server);
 
     console.log("--- Starting background services ---");
-    scanListenerService.start();
-    mcapUpdateService.start();
-    startTelegramListener();
-    rickTapperService.start();
-    xPostTapperService.start();
-    zoneReevaluationService.start(); // NEW SERVICE START
-    startTelegramBot();
+    // scanListenerService.start();
+    // mcapUpdateService.start();
+    // startTelegramListener();
+    // rickTapperService.start();
+    // xPostTapperService.start();
+    // zoneReevaluationService.start(); // NEW SERVICE START
+    // startTelegramBot();
     console.log("--- All services are running ---");
   });
 };
