@@ -27,7 +27,7 @@ class RickTapperService {
       return;
     }
     this.isTapping = true;
-    console.log("[Tapper] Starting new tapping cycle...");
+    // console.log("[Tapper] Starting new tapping cycle...");
 
     try {
       const candidateTokenIds = await getPreEntryCandidateTokens();
@@ -42,20 +42,20 @@ class RickTapperService {
         .select("mintAddress symbol")
         .lean();
 
-      console.log(
-        `[Tapper] Found ${candidateTokens.length} pre-entry tokens to tap. Starting...`
-      );
+      // console.log(
+      //   `[Tapper] Found ${candidateTokens.length} pre-entry tokens to tap. Starting...`
+      // );
       for (const token of candidateTokens) {
-        console.log(
-          `[Tapper] -> Tapping Rick for ${token.symbol} (${token.mintAddress})`
-        );
+        // console.log(
+        //   `[Tapper] -> Tapping Rick for ${token.symbol} (${token.mintAddress})`
+        // );
         await tgClient.sendMessage("@RickBurpBot", {
           message: token.mintAddress,
         });
 
         await sleep(10000);
       }
-      console.log("[Tapper] Finished tapping cycle.");
+      // console.log("[Tapper] Finished tapping cycle.");
     } catch (error) {
       console.error("[Tapper] Error during tapping cycle:", error);
     } finally {
