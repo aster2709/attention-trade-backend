@@ -3,22 +3,22 @@
 export const ZONE_CRITERIA = {
   DEGEN_ORBIT: {
     name: "DEGEN_ORBIT",
-    scans: 5,
-    groups: 4,
+    scans: 4,
+    groups: 3,
     window: "3h",
     windowHours: 3,
   },
   MAINFRAME: {
     name: "MAINFRAME",
-    scans: 11,
-    groups: 7,
+    scans: 9,
+    groups: 5,
     window: "8h",
     windowHours: 8,
   },
   SENTIMENT_CORE: {
     name: "SENTIMENT_CORE",
-    scans: 20,
-    groups: 10,
+    scans: 16,
+    groups: 8,
     window: "24h",
     windowHours: 24,
   },
