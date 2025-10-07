@@ -83,7 +83,7 @@ export async function sendFirstScanAlert(token: any, groupName: string) {
   };
 
   try {
-    await bot.telegram.sendMessage(847122773, message, {
+    await bot.telegram.sendMessage(1188587825, message, {
       // @Juliooofive
       parse_mode: "Markdown",
       ...tradeLinks,
