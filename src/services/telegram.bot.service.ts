@@ -90,7 +90,7 @@ export async function sendFirstScanAlert(token: any, groupName: string) {
 
   try {
     const logo = token.logoURI || "https://i.imgur.com/v81nW21.png";
-    await bot.telegram.sendPhoto(7577985841, logo, {
+    await bot.telegram.sendPhoto(847122773, logo, {
       caption: message,
       parse_mode: "Markdown",
       ...tradeLinks,
