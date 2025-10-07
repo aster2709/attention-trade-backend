@@ -74,8 +74,10 @@ export async function sendFirstScanAlert(token: any, groupName: string) {
             url: `https://axiom.trade/t/${token.mintAddress}`,
           },
           {
-            text: "PHO",
-            url: `https://photon-sol.tinyastro.io/en/lp/${token.mintAddress}`,
+            text: token.mintAddress.includes("pump") ? "PUMP" : "PHO",
+            url: token.mintAddress.includes("pump")
+              ? `https://pump.fun/coin/${token.mintAddress}`
+              : `https://photon-sol.tinyastro.io/en/lp/${token.mintAddress}`,
           },
           {
             text: "DEX",
