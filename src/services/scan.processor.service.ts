@@ -2,6 +2,7 @@ import { TokenModel } from "../models/token.model";
 import { ScanModel } from "../models/scan.model";
 import { fetchTokenData } from "./jupiter.service";
 import { checkAndTriggerAlerts } from "./alert.service";
+import { sendFirstScanAlert } from "./telegram.bot.service";
 
 interface FnfScanPayload {
   token: {
@@ -59,6 +60,9 @@ export const processNewScan = async (
         currentMarketCap: jupiterData.marketCap || 0,
       });
       console.log(`✅ Token ${token.symbol} created successfully.`);
+
+      // Pass the groupProfile.name to the alert function
+      await sendFirstScanAlert(token, groupProfile.name); // <-- UPDATED THIS LINE
     }
 
     // 3. Create the Scan document

@@ -2,6 +2,7 @@ import { Telegraf } from "telegraf";
 import { UserModel } from "../models/user.model";
 import crypto from "crypto";
 import { config } from "../config/env";
+import { formatNumber } from "../utils/formatters";
 
 const BOT_TOKEN = config.TG_BOT_TOKEN;
 
@@ -45,6 +46,57 @@ bot.command("link", async (ctx) => {
     { parse_mode: "Markdown" }
   );
 });
+
+/**
+ * Sends an alert for the first time a token is scanned.
+ * @param token The newly created token object.
+ * @param groupName The name of the group where the token was first scanned.
+ */
+export async function sendFirstScanAlert(token: any, groupName: string) {
+  // Add the "Scanned In" field to the message
+  const message =
+    `*${groupName.toUpperCase()}* ✨\n\n` +
+    `$${token.symbol} (${token.name})\n` +
+    `*MCap:* $${formatNumber(token.currentMarketCap || 0).toLocaleString()}\n` +
+    `*Scanned In:* ${groupName}\n\n`; // <-- ADDED THIS LINE
+
+  // Create inline keyboard for trade links
+  const tradeLinks = {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "AXI",
+            url: `https://axiom.trade/t/${token.mintAddress}`,
+          },
+          {
+            text: "PHO",
+            url: `https://photon-sol.tinyastro.io/en/lp/${token.mintAddress}`,
+          },
+          {
+            text: "DEX",
+            url: `https://dexscreener.com/solana/${token.mintAddress}`,
+          },
+        ],
+      ],
+    },
+  };
+
+  try {
+    await bot.telegram.sendMessage("@aster2709", message, {
+      parse_mode: "Markdown",
+      ...tradeLinks,
+    });
+    console.log(
+      `✅ [Telegram Bot] Sent first scan alert for $${token.symbol} to admin.`
+    );
+  } catch (error) {
+    console.error(
+      `[Telegram Bot] Failed to send first scan alert for $${token.symbol}:`,
+      error
+    );
+  }
+}
 
 /**
  * Starts the Telegram bot.
