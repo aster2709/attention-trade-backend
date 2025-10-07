@@ -54,11 +54,15 @@ bot.command("link", async (ctx) => {
  */
 export async function sendFirstScanAlert(token: any, groupName: string) {
   // Add the "Scanned In" field to the message
-  const message =
-    `*${groupName.toUpperCase()}* ✨\n\n` +
-    `$${token.symbol} (${token.name})\n` +
-    `*MCap:* $${formatNumber(token.currentMarketCap || 0).toLocaleString()}\n` +
-    `*Scanned In:* ${groupName}\n\n`; // <-- ADDED THIS LINE
+  const message = `
+*$${token.symbol.toUpperCase()}* (${token.name}) ✨
+
+*Scanned In:* ${groupName} 
+*MCap:* $${formatNumber(token.currentMarketCap || 0).toLocaleString()}
+
+
+\`${token.mintAddress}\`
+`;
 
   // Create inline keyboard for trade links
   const tradeLinks = {
@@ -83,8 +87,9 @@ export async function sendFirstScanAlert(token: any, groupName: string) {
   };
 
   try {
-    await bot.telegram.sendMessage(1188587825, message, {
-      // @Juliooofive
+    const logo = token.logoURI || "https://i.imgur.com/v81nW21.png";
+    await bot.telegram.sendPhoto(1188587825, logo, {
+      caption: message,
       parse_mode: "Markdown",
       ...tradeLinks,
     });
