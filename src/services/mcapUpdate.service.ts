@@ -83,7 +83,7 @@ class McapUpdateService {
             });
           }
         }
-        await sleep(2000);
+        await sleep(10_000);
       }
 
       if (bulkOps.length > 0) {
