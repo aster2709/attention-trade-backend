@@ -51,27 +51,46 @@ const sendTelegramAlert = async (
 \`${token.mintAddress}\`
     `;
 
-  // Create inline keyboard for trade links
-  const tradeLinks = {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: "AXI",
-            url: `https://axiom.trade/t/${token.mintAddress}`,
-          },
-          {
-            text: "PHO",
-            url: `https://photon-sol.tinyastro.io/en/lp/${token.mintAddress}`,
-          },
-          {
-            text: "DEX",
-            url: `https://dexscreener.com/solana/${token.mintAddress}`,
-          },
+  let tradeLinks: any;
+  if (token.mintAddress.startsWith("0x")) {
+    tradeLinks = {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "DEX",
+              url: `https://dexscreener.com/bsc/${token.mintAddress}`,
+            },
+            {
+              text: "GMGN",
+              url: `https://gmgn.ai/bsc/token/${token.mintAddress}`,
+            },
+          ],
         ],
-      ],
-    },
-  };
+      },
+    };
+  } else {
+    tradeLinks = {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "AXI",
+              url: `https://axiom.trade/t/${token.mintAddress}`,
+            },
+            {
+              text: "PHO",
+              url: `https://photon-sol.tinyastro.io/en/lp/${token.mintAddress}`,
+            },
+            {
+              text: "DEX",
+              url: `https://dexscreener.com/solana/${token.mintAddress}`,
+            },
+          ],
+        ],
+      },
+    };
+  }
 
   try {
     // Send a photo with the caption and trade links
