@@ -63,7 +63,7 @@ const sendTelegramAlert = async (
             },
             {
               text: "GMGN",
-              url: `https://gmgn.ai/bsc/token/${token.mintAddress}`,
+              url: `https://gmgn.ai/bsc/token/attn_${token.mintAddress}`,
             },
           ],
         ],
@@ -75,16 +75,12 @@ const sendTelegramAlert = async (
         inline_keyboard: [
           [
             {
-              text: "AXI",
-              url: `https://axiom.trade/t/${token.mintAddress}`,
-            },
-            {
-              text: "PHO",
-              url: `https://photon-sol.tinyastro.io/en/lp/${token.mintAddress}`,
-            },
-            {
               text: "DEX",
               url: `https://dexscreener.com/solana/${token.mintAddress}`,
+            },
+            {
+              text: "GMGN",
+              url: `https://gmgn.ai/sol/token/attn_${token.mintAddress}`,
             },
           ],
         ],
