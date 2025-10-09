@@ -7,6 +7,7 @@ import { sendFirstScanAlert } from "./telegram.bot.service";
 interface FnfScanPayload {
   token: {
     mintAddress: string;
+    iconUrl: string;
   };
   groupProfile: {
     platformId: string;
@@ -26,7 +27,7 @@ export const processNewScan = async (
 ): Promise<void> => {
   try {
     const {
-      token: { mintAddress },
+      token: { mintAddress, iconUrl },
       groupProfile,
       sourcePlatform,
     } = scanPayload;
@@ -78,6 +79,7 @@ export const processNewScan = async (
     await TokenModel.findByIdAndUpdate(token._id, {
       $inc: { scanCount: 1 }, // Atomically increment scanCount by 1
       $addToSet: { scannedInGroups: groupProfile.platformId }, // Add groupId if it's not already in the array
+      $set: { logoURI: iconUrl || token.logoURI }, // Update logoURI if a new one is provided
     });
 
     console.log(
