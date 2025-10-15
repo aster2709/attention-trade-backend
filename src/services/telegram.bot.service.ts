@@ -47,6 +47,15 @@ bot.command("link", async (ctx) => {
   );
 });
 
+bot.on("message", (ctx) => {
+  const chat = ctx.chat;
+  if (chat.type.endsWith("group")) {
+    console.log(
+      `📍 Group detected: ${(chat as any)?.title as any} (${chat.id})`
+    );
+  }
+});
+
 /**
  * Sends an alert for the first time a token is scanned.
  * @param token The newly created token object.
