@@ -328,6 +328,11 @@ export const checkAndTriggerAlerts = async (
               }
             }
           }
+          const messageId = await sendTelegramAlert(
+            -1002956278323,
+            token,
+            zone
+          );
         }
       }
     }
