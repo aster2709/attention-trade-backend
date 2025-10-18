@@ -87,5 +87,5 @@ export async function initTelegramClient(): Promise<void> {
   fs.writeFileSync(sessionPath, session, { encoding: "utf-8" });
   console.log("✅ [Telegram] Session saved to session.txt");
 
-  await getRecentChatIds();
+  // await getRecentChatIds();
 }

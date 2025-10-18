@@ -136,7 +136,7 @@ export function startTelegramListener() {
             `[Listener] EVM address ${address} found in source group ${chatId}. Forwarding...`
           );
           try {
-            await tgClient.sendMessage(TARGET_CHAT_ID, { message: address });
+            await tgClient.sendMessage(+TARGET_CHAT_ID, { message: address });
             console.log(
               `✅ [Listener] Forwarded EVM address ${address} to target chat ${TARGET_CHAT_ID}.`
             );
