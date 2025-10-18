@@ -48,23 +48,27 @@ async function getRecentChatIds() {
   console.log("Fetching recent dialogs...");
   const recentDialogs = [];
   try {
-    // iterDialogs returns an async iterator
     for await (const dialog of tgClient.iterDialogs({ limit: 20 })) {
-      // Limit to recent 20
       if (dialog.entity) {
-        // Check if entity (user/chat/channel) exists
+        // Access the username property, it might be undefined
+        const username = (dialog.entity as any).username; // Cast to 'any' to access potential username
+
         recentDialogs.push({
-          name: dialog.title, // dialog.title usually holds the name
-          id: dialog.entity.id.toString(), // Get the ID (it's a BigInt, convert to string)
-          type: dialog.entity.className, // e.g., 'User', 'Chat', 'Channel'
+          name: dialog.title,
+          id: dialog.entity.id.toString(),
+          username: username || "N/A", // Add username, default to 'N/A' if missing
+          type: dialog.entity.className,
         });
       }
     }
-    console.log("Recent Chat IDs and Names:", recentDialogs);
+    console.log("Recent Chat IDs, Names, and Usernames:", recentDialogs);
   } catch (error) {
     console.error("Error fetching dialogs:", error);
   }
 }
+
+// Example call (run after client connects)
+// setTimeout(getRecentChatIds, 5000);
 
 // You would call this function after the client is connected, e.g.,
 // setTimeout(getRecentChatIds, 5000); // Call after 5 seconds
@@ -83,5 +87,5 @@ export async function initTelegramClient(): Promise<void> {
   fs.writeFileSync(sessionPath, session, { encoding: "utf-8" });
   console.log("✅ [Telegram] Session saved to session.txt");
 
-  // await getRecentChatIds();
+  await getRecentChatIds();
 }
