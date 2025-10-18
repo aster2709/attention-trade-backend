@@ -66,11 +66,6 @@ export function startTelegramListener() {
       const chatId = message?.chatId?.toString();
       const messageText = message?.message;
 
-      console.log("[Listener] Received new message event. | Details:", {
-        senderId,
-        chatId,
-        messageText,
-      });
       if (!messageText || !senderId || !chatId) {
         return; // Ignore messages without text, sender, or chat ID
       }
