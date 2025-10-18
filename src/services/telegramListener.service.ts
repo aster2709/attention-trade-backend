@@ -142,6 +142,30 @@ export function startTelegramListener() {
               forwardError
             );
           }
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 500)); // 1 second delay
+            await tgClient.sendMessage("@maestro", { message: address });
+            console.log(
+              `✅ [Listener] Forwarded EVM address ${address} to target chat ${TARGET_CHAT_ID}.`
+            );
+          } catch (forwardError) {
+            console.error(
+              `[Listener] Failed to forward EVM address ${address}:`,
+              forwardError
+            );
+          }
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 500)); // 1 second delay
+            await tgClient.sendMessage("@maestro", { message: address });
+            console.log(
+              `✅ [Listener] Forwarded EVM address ${address} to target chat ${TARGET_CHAT_ID}.`
+            );
+          } catch (forwardError) {
+            console.error(
+              `[Listener] Failed to forward EVM address ${address}:`,
+              forwardError
+            );
+          }
         }
         // No return here, message might contain other info (or might not be relevant)
       }
