@@ -39,6 +39,36 @@ function prompt(question: string): Promise<string> {
   );
 }
 
+async function getRecentChatIds() {
+  if (!tgClient.connected) {
+    console.error("Telegram client is not connected.");
+    return;
+  }
+
+  console.log("Fetching recent dialogs...");
+  const recentDialogs = [];
+  try {
+    // iterDialogs returns an async iterator
+    for await (const dialog of tgClient.iterDialogs({ limit: 20 })) {
+      // Limit to recent 20
+      if (dialog.entity) {
+        // Check if entity (user/chat/channel) exists
+        recentDialogs.push({
+          name: dialog.title, // dialog.title usually holds the name
+          id: dialog.entity.id.toString(), // Get the ID (it's a BigInt, convert to string)
+          type: dialog.entity.className, // e.g., 'User', 'Chat', 'Channel'
+        });
+      }
+    }
+    console.log("Recent Chat IDs and Names:", recentDialogs);
+  } catch (error) {
+    console.error("Error fetching dialogs:", error);
+  }
+}
+
+// You would call this function after the client is connected, e.g.,
+// setTimeout(getRecentChatIds, 5000); // Call after 5 seconds
+
 export async function initTelegramClient(): Promise<void> {
   console.log("[Telegram] Initializing client...");
   await tgClient.start({
@@ -52,4 +82,6 @@ export async function initTelegramClient(): Promise<void> {
   const session = (tgClient.session as StringSession).save();
   fs.writeFileSync(sessionPath, session, { encoding: "utf-8" });
   console.log("✅ [Telegram] Session saved to session.txt");
+
+  await getRecentChatIds();
 }
