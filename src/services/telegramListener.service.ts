@@ -70,6 +70,10 @@ export function startTelegramListener() {
         return; // Ignore messages without text, sender, or chat ID
       }
 
+      console.log(
+        `[Listener] New message from ${senderId} in source group ${chatId}: ${messageText}`
+      );
+
       // --- Logic for Rick Bot Messages ---
       if (senderId === RICK_USER_ID) {
         console.log("[Listener] Processing Rick Bot message...");
