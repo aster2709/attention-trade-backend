@@ -70,9 +70,15 @@ export function startTelegramListener() {
         return; // Ignore messages without text, sender, or chat ID
       }
 
+      console.log(
+        `[Listener] New message from ${senderId} in chat ${chatId}: ${messageText}`
+      );
+
       // --- Logic for Rick Bot Messages ---
       if (senderId === RICK_USER_ID) {
+        console.log("[Listener] Processing Rick Bot message...");
         const address = extractAddress(messageText);
+        console.log(`[Listener] Extracted address: ${address}`);
         if (!address) {
           console.log(
             "[Listener] Rick message detected, but no address found."
@@ -113,8 +119,17 @@ export function startTelegramListener() {
         chatId === SOURCE_GROUP_CHAT_ID &&
         TARGET_CHAT_ID
       ) {
+        console.log(
+          "[Listener] Processing message from source group for EVM address..."
+        );
         const address = extractAddress(messageText);
+        console.log(`[Listener] Extracted address: ${address}`);
 
+        console.log(
+          `[Listener] Checking if address is valid EVM address... is: ${isEvmAddress(
+            address || "null"
+          )}`
+        );
         // Check if a valid EVM address was found
         if (address && isEvmAddress(address)) {
           console.log(
