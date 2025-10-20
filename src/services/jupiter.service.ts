@@ -1,12 +1,16 @@
 import axios from "axios";
 
-// A type definition for the structured data we expect back from this service.
-export interface JupiterTokenData {
+// Updated return type for fetchMultipleTokenData
+export interface TokenMarketData {
   mintAddress: string;
+  marketCap?: number;
+}
+
+// Kept original interface for fetchTokenData which fetches more details
+export interface JupiterTokenData extends TokenMarketData {
   name: string;
   symbol: string;
   logoURI?: string;
-  marketCap?: number;
   creationTimestamp?: Date;
   launchpad?: string;
   metaLaunchpad?: string;
@@ -14,78 +18,62 @@ export interface JupiterTokenData {
 }
 
 const JUPITER_API_ENDPOINT = "https://lite-api.jup.ag/tokens/v2/search?query=";
-const BIRDEYE_API_URL = "https://public-api.birdeye.so/defi/token_overview";
-const BIRDEYE_API_KEY = process.env.BIRDEYE_API_KEY; // Ensure this is in your .env file
+const BIRDEYE_V3_MULTI_ENDPOINT =
+  "https://public-api.birdeye.so/defi/v3/token/market-data/multiple";
+const BIRDEYE_V2_OVERVIEW_ENDPOINT =
+  "https://public-api.birdeye.so/defi/token_overview"; // Keep for single fetch
+const BIRDEYE_API_KEY = process.env.BIRDEYE_API_KEY;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Fetches token metadata from the appropriate API based on the address format.
- * @param address The mint address (Solana) or contract address (BSC).
- * @returns A promise that resolves to a structured JupiterTokenData object or null if not found.
+ * Fetches detailed token metadata for a SINGLE address (used for initial discovery).
+ * Uses Jupiter for Solana, Birdeye V2 for BSC.
+ * @param address The mint/contract address.
+ * @returns A promise resolving to detailed JupiterTokenData or null.
  */
 export const fetchTokenData = async (
   address: string
 ): Promise<JupiterTokenData | null> => {
-  // --- BSC (EVM) Address Logic ---
   if (address.startsWith("0x")) {
+    // --- BSC (EVM) Address Logic using Birdeye V2 ---
     if (!BIRDEYE_API_KEY) {
-      console.error(
-        "[Birdeye] Error: BIRDEYE_API_KEY is not configured in your .env file."
-      );
+      console.error("[Birdeye V2] Error: BIRDEYE_API_KEY not configured.");
       return null;
     }
     try {
       const response = await axios.get(
-        `${BIRDEYE_API_URL}?address=${address}`,
-        {
-          headers: {
-            "x-chain": "bsc",
-            "X-API-KEY": BIRDEYE_API_KEY,
-          },
-        }
+        `${BIRDEYE_V2_OVERVIEW_ENDPOINT}?address=${address}`,
+        { headers: { "x-chain": "bsc", "X-API-KEY": BIRDEYE_API_KEY } }
       );
-
       if (!response.data.success || !response.data.data) {
-        console.warn(`[Birdeye] No data found for address: ${address}`);
+        console.warn(`[Birdeye V2] No data found for address: ${address}`);
         return null;
       }
-
       const tokenData = response.data.data;
-
-      // Map the Birdeye API response to our clean, structured object.
-      const formattedData: JupiterTokenData = {
+      return {
         mintAddress: tokenData.address,
         name: tokenData.name,
         symbol: tokenData.symbol,
         logoURI: tokenData.logoURI,
         marketCap: tokenData.marketCap,
+        // creationTimestamp is not reliably available in this Birdeye endpoint
       };
-      return formattedData;
     } catch (error) {
-      console.error(
-        `[Birdeye] Failed to fetch data for address: ${address}`,
-        error
-      );
+      console.error(`[Birdeye V2] Failed for address ${address}:`, error);
       return null;
     }
-  }
-
-  // --- Solana Address Logic (Existing) ---
-  else {
+  } else {
+    // --- Solana Address Logic using Jupiter ---
     try {
       const response = await axios.get(`${JUPITER_API_ENDPOINT}${address}`);
       const tokens = response.data;
-
       if (!tokens || tokens.length === 0) {
         console.warn(`[Jupiter] No data found for mint: ${address}`);
         return null;
       }
-
       const tokenData = tokens[0];
-
-      // Map the Jupiter API response to our clean, structured object.
-      const formattedData: JupiterTokenData = {
+      return {
         mintAddress: tokenData.id,
         name: tokenData.name,
         symbol: tokenData.symbol,
@@ -98,101 +86,84 @@ export const fetchTokenData = async (
         metaLaunchpad: tokenData.metaLaunchpad,
         partnerConfig: tokenData.partnerConfig,
       };
-      return formattedData;
     } catch (error) {
-      console.error(
-        `[Jupiter] Failed to fetch data for mint: ${address}`,
-        error
-      );
+      console.error(`[Jupiter] Failed for mint ${address}:`, error);
       return null;
     }
   }
 };
 
 /**
- * Fetches token metadata from appropriate APIs for multiple mint/contract addresses.
- * @param mintAddresses An array of Solana mint addresses and/or BSC contract addresses.
- * @returns A promise that resolves to an array of structured JupiterTokenData objects.
+ * Fetches market cap data for MULTIPLE addresses for a SPECIFIC chain.
+ * Uses Jupiter for Solana (up to 100), Birdeye V3 for BSC (up to 20).
+ * Batching (splitting into 100s or 20s) must be done by the CALLER.
+ * @param addresses An array of addresses for the specified chain.
+ * @param chain The chain ('solana' or 'bsc').
+ * @returns A promise resolving to an array of TokenMarketData objects.
  */
 export const fetchMultipleTokenData = async (
-  mintAddresses: string[]
-): Promise<JupiterTokenData[]> => {
-  if (mintAddresses.length === 0) {
+  addresses: string[],
+  chain: "solana" | "bsc"
+): Promise<TokenMarketData[]> => {
+  if (addresses.length === 0) {
     return [];
   }
 
-  // 1. Split addresses by chain
-  const solanaAddresses: string[] = [];
-  const bscAddresses: string[] = [];
+  if (chain === "solana") {
+    // --- Solana Bulk Fetch using Jupiter ---
+    try {
+      const query = addresses.join(",");
+      const response = await axios.get(`${JUPITER_API_ENDPOINT}${query}`);
+      const tokens = response.data;
 
-  mintAddresses.forEach((addr) => {
-    if (addr.startsWith("0x")) {
-      bscAddresses.push(addr);
-    } else {
-      solanaAddresses.push(addr);
+      if (!tokens || !Array.isArray(tokens) || tokens.length === 0) return [];
+
+      // Only return address and market cap
+      return tokens.map((tokenData: any) => ({
+        mintAddress: tokenData.id,
+        marketCap: tokenData.mcap,
+      }));
+    } catch (error) {
+      console.error(`[Jupiter Batch] Failed for batch.`, error);
+      return [];
     }
-  });
+  } else if (chain === "bsc") {
+    // --- BSC Bulk Fetch using Birdeye V3 ---
+    if (!BIRDEYE_API_KEY) {
+      console.error("[Birdeye V3] Error: BIRDEYE_API_KEY not configured.");
+      return [];
+    }
+    try {
+      const addressList = addresses.join(",");
+      const response = await axios.get(
+        `${BIRDEYE_V3_MULTI_ENDPOINT}?list_address=${addressList}`,
+        { headers: { "x-chain": "bsc", "X-API-KEY": BIRDEYE_API_KEY } }
+      );
 
-  const promises: Promise<JupiterTokenData[]>[] = [];
-
-  // 2. Create promise for Solana (Jupiter) batch request
-  if (solanaAddresses.length > 0) {
-    const solanaPromise = (async () => {
-      try {
-        const query = solanaAddresses.join(",");
-        const response = await axios.get(`${JUPITER_API_ENDPOINT}${query}`);
-        const tokens = response.data;
-
-        if (!tokens || tokens.length === 0) return [];
-
-        return tokens.map((tokenData: any) => ({
-          mintAddress: tokenData.id,
-          name: tokenData.name,
-          symbol: tokenData.symbol,
-          logoURI: tokenData.icon,
-          marketCap: tokenData.mcap,
-          creationTimestamp: tokenData.firstPool?.createdAt
-            ? new Date(tokenData.firstPool.createdAt)
-            : undefined,
-          launchpad: tokenData.launchpad,
-          metaLaunchpad: tokenData.metaLaunchpad,
-          partnerConfig: tokenData.partnerConfig,
-        }));
-      } catch (error) {
-        console.error(`[Jupiter] Failed to fetch data for batch.`, error);
+      if (!response.data.success || !response.data.data) {
+        console.warn(`[Birdeye V3] No data returned for batch: ${addressList}`);
         return [];
       }
-    })();
-    promises.push(solanaPromise);
-  }
 
-  // 3. Create promise for BSC (Birdeye) sequential requests
-  if (bscAddresses.length > 0) {
-    if (!BIRDEYE_API_KEY) {
-      console.warn("[Birdeye] API key not set. Skipping BSC address fetch.");
-    } else {
-      const bscPromise = (async () => {
-        const results: JupiterTokenData[] = [];
-        for (const address of bscAddresses) {
-          // fetchTokenData already handles single lookups perfectly
-          const tokenData = await fetchTokenData(address);
-          if (tokenData) {
-            results.push(tokenData);
-          }
-          await sleep(110); // Respect rate limit (10 rps)
+      const marketDataMap = response.data.data;
+      const results: TokenMarketData[] = [];
+
+      // Iterate over the response map and format the data
+      for (const address in marketDataMap) {
+        if (marketDataMap.hasOwnProperty(address)) {
+          results.push({
+            mintAddress: marketDataMap[address].address,
+            marketCap: marketDataMap[address].market_cap,
+          });
         }
-        return results;
-      })();
-      promises.push(bscPromise);
+      }
+      return results;
+    } catch (error) {
+      console.error(`[Birdeye V3 Batch] Failed for batch.`, error);
+      return [];
     }
-  }
-
-  // 4. Execute all promises and combine results
-  try {
-    const results = await Promise.all(promises);
-    return results.flat();
-  } catch (error) {
-    console.error(`[Multi-Chain] Error fetching combined token data`, error);
+  } else {
+    console.error(`[Multi-Chain] Invalid chain specified: ${chain}`);
     return [];
   }
 };
