@@ -76,7 +76,7 @@ class McapUpdateService {
           }...`
         );
         promises.push(fetchMultipleTokenData(batch, "solana"));
-        await sleep(500);
+        await sleep(2000);
       }
 
       // Fetch BSC data (Birdeye V3)
