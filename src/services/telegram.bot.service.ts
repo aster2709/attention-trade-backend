@@ -122,7 +122,7 @@ export async function sendTokenGateDisabledAlert(
   const message =
     `⚠️ Your attention.trade Telegram alerts have been *disabled*.\n\n` +
     `Holding at least *${requiredAmount.toLocaleString()} $ATTN* is required to receive alerts.\n\n` +
-    `You can re-enable alerts in the zone settings on the website once you meet the requirement.`;
+    `You can re-toggle alerts in the zone settings on the website once you meet the requirement.`;
 
   try {
     await bot.telegram.sendMessage(chatId, message, { parse_mode: "Markdown" });

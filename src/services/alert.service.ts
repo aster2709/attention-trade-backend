@@ -13,7 +13,7 @@ import { fetchTokenData } from "./jupiter.service"; // Import Jupiter service
 type ZoneName = keyof typeof ZONE_CRITERIA;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const TELEGRAM_RATE_LIMIT_DELAY = 45; // Milliseconds between sends (~28 msgs/sec)
+const TELEGRAM_RATE_LIMIT_DELAY = 100; // Milliseconds between sends (~28 msgs/sec)
 
 const sendTelegramAlert = async (
   chatId: number,

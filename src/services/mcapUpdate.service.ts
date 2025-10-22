@@ -9,7 +9,7 @@ import { formatNumber } from "../utils/formatters";
 const JUPITER_BATCH_SIZE = 100;
 const BIRDEYE_BATCH_SIZE = 20;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const TELEGRAM_RATE_LIMIT_DELAY = 35; // Milliseconds between sends (~28 msgs/sec)
+const TELEGRAM_RATE_LIMIT_DELAY = 100; // Milliseconds between sends (~28 msgs/sec)
 const CHECKPOINTS = [3, 10, 25, 50, 100]; // Multiples for checkpoint alerts
 
 class McapUpdateService {
