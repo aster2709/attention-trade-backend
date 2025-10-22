@@ -27,14 +27,9 @@ async function getTokenBalance(
   try {
     const response = await axios.get(`${JUP_HOLDINGS_API}${walletAddress}`);
     const holdings = response.data;
-    console.log(`[TokenGate] Holdings for ${walletAddress}:`, holdings);
 
     // Find the specific token in the response
     const tokenAccounts = holdings?.tokens?.[tokenMint];
-    console.log(
-      `[TokenGate] Token accounts for mint ${tokenMint}:`,
-      tokenAccounts
-    );
 
     if (
       tokenAccounts &&
@@ -108,10 +103,6 @@ class TokenGateService {
 
       for (const user of usersToCheck) {
         if (!user.telegram) continue; // Should not happen due to query, but safety check
-        if (
-          user.walletAddress !== "5kH24sHMVmn1f8Q7QUzaCK94fNxCj47RYhTXC3UFJAF1"
-        )
-          continue; // temp skip
 
         const balance = await getTokenBalance(user.walletAddress!, ATTN_MINT!);
         console.log(
