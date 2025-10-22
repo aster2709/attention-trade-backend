@@ -103,11 +103,6 @@ class TokenGateService {
 
       for (const user of usersToCheck) {
         if (!user.telegram) continue; // Should not happen due to query, but safety check
-        if (
-          user.walletAddress !== "3pPNCQS6JoXY8as1zRSydwsqLNm93aeoKfSUzB4EMzHj"
-        ) {
-          continue; // Testing skip
-        }
 
         const balance = await getTokenBalance(user.walletAddress!, ATTN_MINT!);
         console.log(
