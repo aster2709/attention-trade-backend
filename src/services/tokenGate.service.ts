@@ -1,3 +1,4 @@
+import "dotenv/config";
 import * as cron from "node-cron";
 import axios from "axios";
 import { UserModel } from "../models/user.model";
@@ -26,9 +27,14 @@ async function getTokenBalance(
   try {
     const response = await axios.get(`${JUP_HOLDINGS_API}${walletAddress}`);
     const holdings = response.data;
+    console.log(`[TokenGate] Holdings for ${walletAddress}:`, holdings);
 
     // Find the specific token in the response
     const tokenAccounts = holdings?.tokens?.[tokenMint];
+    console.log(
+      `[TokenGate] Token accounts for mint ${tokenMint}:`,
+      tokenAccounts
+    );
 
     if (
       tokenAccounts &&
