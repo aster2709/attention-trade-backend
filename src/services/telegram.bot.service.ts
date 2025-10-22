@@ -115,6 +115,31 @@ export async function sendFirstScanAlert(token: any, groupName: string) {
   }
 }
 
+export async function sendTokenGateDisabledAlert(
+  chatId: number,
+  requiredAmount: number
+) {
+  const message =
+    `⚠️ Your attention.trade Telegram alerts have been *disabled*.\n\n` +
+    `Holding at least *${requiredAmount.toLocaleString()} $ATTN* is required to receive alerts.\n\n` +
+    `You can re-enable alerts in the zone settings on the website once you meet the requirement.`;
+
+  try {
+    await bot.telegram.sendMessage(chatId, message, { parse_mode: "Markdown" });
+    console.log(
+      `✅ [Telegram Bot] Sent token gate disabled alert to chat ${chatId}.`
+    );
+  } catch (error: any) {
+    // Avoid spamming logs if the user blocked the bot after the check ran
+    if (!error.message?.includes("Forbidden: bot was blocked by the user")) {
+      console.error(
+        `[Telegram Bot] Failed to send token gate disabled alert to chat ${chatId}:`,
+        error
+      );
+    }
+  }
+}
+
 /**
  * Starts the Telegram bot.
  */

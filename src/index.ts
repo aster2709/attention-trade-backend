@@ -25,6 +25,7 @@ import fnfscanRoutes from "./routes/fnfscan.routes";
 
 import { startTelegramBot } from "./services/telegram.bot.service";
 import { config } from "./config/env";
+import { tokenGateService } from "./services/tokenGate.service";
 
 const main = async () => {
   await connectDB();
@@ -67,6 +68,7 @@ const main = async () => {
     xPostTapperService.start();
     zoneReevaluationService.start(); // NEW SERVICE START
     startTelegramBot();
+    tokenGateService.start();
     console.log("--- All services are running ---");
   });
 };
