@@ -138,7 +138,7 @@ class TokenGateService {
         }
 
         // Rate limit API calls
-        await sleep(200); // ~5 calls per second
+        await sleep(1000); // ~5 calls per second
       }
     } catch (error) {
       console.error("[TokenGate] Error during check:", error);
