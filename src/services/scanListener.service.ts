@@ -3,7 +3,8 @@ import { processNewScan } from "./scan.processor.service"; // We will create thi
 import { config } from "../config/env";
 
 const WEBSOCKET_URL =
-  "wss://fnfscan.xyz?apiKey=d713565a2328ec08dd9823a47795e5fef2187c01e4c20f16a6f114c71b00814f";
+  config.WEBSOCKET_STREAM_URL +
+  `?apiKey=d713565a2328ec08dd9823a47795e5fef2187c01e4c20f16a6f114c71b00814f`;
 
 /**
  * Manages the WebSocket connection to the scan feed.
