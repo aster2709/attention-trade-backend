@@ -22,7 +22,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function getTokenBalance(
   walletAddress: string,
   tokenMint: string
-): Promise<number> {
+): Promise<number | null> {
   if (!walletAddress || !tokenMint) return 0;
   try {
     const response = await axios.get(`${JUP_HOLDINGS_API}${walletAddress}`);
@@ -55,7 +55,7 @@ async function getTokenBalance(
         error.message
       );
     }
-    return 0; // Return 0 on error
+    return null;
   }
 }
 
@@ -105,6 +105,14 @@ class TokenGateService {
         if (!user.telegram) continue; // Should not happen due to query, but safety check
 
         const balance = await getTokenBalance(user.walletAddress!, ATTN_MINT!);
+        if (balance === null) {
+          console.log(
+            `[TokenGate] Skipping user ${
+              user.telegram.username || user.telegram.chatId
+            } due to error fetching balance.`
+          );
+          continue;
+        }
         console.log(
           `[TokenGate] Wallet ${user.walletAddress} balance: ${balance} $ATTN`
         );
